@@ -55,7 +55,7 @@ class PlayerListener(private val plugin: CocoaProxyPlugin) : Listener {
 
     @EventHandler
     fun onSwitch(event: ServerSwitchEvent) {
-        if (event.player.hasPermission("cocoa.staff")) {
+        if (event.from != null && event.player.hasPermission("cocoa.staff")) {
             CocoaRedisHandler.sendStaffNotification(
                 event.player,
                 "${ChatColor.AQUA}${event.player.displayName}${ChatColor.DARK_AQUA} joined ${ChatColor.AQUA}${event.player.server.info.name}${ChatColor.DARK_AQUA} from ${ChatColor.AQUA}${event.from.name}${ChatColor.DARK_AQUA}."
@@ -78,7 +78,7 @@ class PlayerListener(private val plugin: CocoaProxyPlugin) : Listener {
                         "${ChatColor.AQUA}${event.player.displayName}${ChatColor.DARK_AQUA} connected to ${ChatColor.AQUA}${event.target.name}${ChatColor.DARK_AQUA}."
                     )
                 }
-            }, 20L, TimeUnit.MILLISECONDS)
+            }, 1L, TimeUnit.SECONDS)
         } else {
             if (!event.target.canAccess(event.player)) {
                 event.player.sendMessage("${ChatColor.RED}Your connection to ${ChatColor.BOLD}${event.target.name}${ChatColor.RED} has been blocked due to you not having permission to access it.")

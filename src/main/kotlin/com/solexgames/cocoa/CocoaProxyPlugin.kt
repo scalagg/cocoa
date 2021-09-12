@@ -76,6 +76,8 @@ class CocoaProxyPlugin : Plugin() {
             commandManager.getFormat(it).setColor(1, ChatColor.GREEN)
         }
 
+        commandManager.enableUnstableAPI("help")
+
         commandManager.commandContexts.registerContext(UUID::class.java) { c ->
             val firstArgument = c.popFirstArg()
 
@@ -101,7 +103,7 @@ class CocoaProxyPlugin : Plugin() {
     fun fetchBestLobby(): ServerInfo? {
         return proxy.servers.values
             .sortedByDescending { it.players.size }
-            .first { isLobbyServer(it) }
+            .firstOrNull { isLobbyServer(it) }
     }
 
     fun isLobbyServer(info: ServerInfo): Boolean {

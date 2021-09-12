@@ -1,5 +1,6 @@
 plugins {
     id "org.jetbrains.kotlin.jvm" version "1.5.30"
+    id "com.github.johnrengelman.shadow" version "5.2.0"
 }
 
 group = 'com.solexgames'
@@ -41,6 +42,15 @@ tasks.withType(JavaCompile).configureEach {
     if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
         options.release = targetJavaVersion
     }
+}
+
+shadowJar {
+    classifier = "all"
+    exclude "**/*.kotlin_metadata"
+    exclude "**/*.kotlin_builtins"
+    exclude "META-INF/"
+
+    archiveFileName = "Cocoa.jar"
 }
 
 processResources {

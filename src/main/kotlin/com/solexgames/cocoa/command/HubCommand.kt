@@ -22,4 +22,11 @@ class HubCommand(private val plugin: CocoaProxyPlugin) : BaseCommand() {
 
         player.connect(bestLobby)
     }
+
+    @CommandAlias("permissions")
+    fun onPermissions(player: ProxiedPlayer) {
+        player.permissions.forEach {
+            player.sendMessage(it)
+        }
+    }
 }
