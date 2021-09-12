@@ -8,11 +8,13 @@ import com.solexgames.cocoa.command.MaintenanceCommand
 import com.solexgames.cocoa.handler.CocoaRedisHandler
 import com.solexgames.cocoa.listener.PlayerListener
 import com.solexgames.cocoa.util.UUIDUtil
+import com.solexgames.datastore.commons.connection.impl.redis.AuthRedisConnection
 import com.solexgames.datastore.commons.connection.impl.redis.NoAuthRedisConnection
 import com.solexgames.datastore.commons.layer.impl.RedisStorageLayer
 import com.solexgames.datastore.commons.storage.impl.RedisStorageBuilder
 import com.solexgames.redis.JedisBuilder
 import com.solexgames.redis.JedisManager
+import com.solexgames.redis.JedisSettings
 import net.evilblock.cubed.Cubed
 import net.evilblock.cubed.util.BungeeConfigUtils
 import net.md_5.bungee.api.ChatColor
@@ -138,18 +140,36 @@ class CocoaProxyPlugin : Plugin() {
     }
 
     private fun loadRedisHandler() {
-        val connection = NoAuthRedisConnection("127.0.0.1", 6379)
+        val connection = if (!config.getBoolean("redis.authentication")) {
+            NoAuthRedisConnection(
+                config.getString("redis.address"),
+                config.getInt("redis.port")
+            )
+        } else {
+            AuthRedisConnection(
+                config.getString("redis.address"),
+                config.getInt("redis.port"),
+                config.getString("redis.password")
+            )
+        }
+        val jedisSettings = JedisSettings(
+            config.getString("redis.address"),
+            config.getInt("redis.port"),
+            config.getBoolean("redis.authentication"),
+            config.getString("redis.password")
+        )
+
         val executor = Executors.newScheduledThreadPool(1)
 
         cocoaJedisManager = JedisBuilder()
             .withChannel("cocoa")
             .withHandler(CocoaRedisHandler)
-            .withSettings(null)
+            .withSettings(jedisSettings)
             .build()
 
         lemonJedisManager = JedisBuilder()
             .withChannel("lemon:spigot")
-            .withSettings(null)
+            .withSettings(jedisSettings)
             .build()
 
         maintenanceLayer = RedisStorageBuilder<UUID>()

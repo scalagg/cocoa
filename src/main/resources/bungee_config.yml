@@ -1,3 +1,8 @@
 motd:
   normal: "&6&lSolexGames &7- &fOnline"
   maintenance: "&6&lSolexGames &7- &cMaintenance"
+redis:
+  address: "localhost"
+  port: 6379
+  authentication: false
+  password: ""
