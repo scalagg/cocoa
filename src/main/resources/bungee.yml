@@ -1,0 +1,6 @@
+name: Cocoa
+version: 1.0.0-dev
+main: com.solexgames.cocoa.com.solexgames.cocoa.CocoaProxyPlugin
+
+author: SolexGames
+website: https://solexgames.com
