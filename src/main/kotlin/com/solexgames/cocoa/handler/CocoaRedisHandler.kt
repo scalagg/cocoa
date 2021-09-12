@@ -7,7 +7,9 @@ import com.solexgames.redis.handler.JedisHandler
 import com.solexgames.redis.json.JsonAppender
 import net.md_5.bungee.api.ProxyServer
 import net.md_5.bungee.api.connection.ProxiedPlayer
+import java.util.*
 import java.util.concurrent.CompletableFuture
+import kotlin.collections.HashMap
 
 /**
  * @author GrowlyX
@@ -20,6 +22,19 @@ object CocoaRedisHandler : JedisHandler {
         ProxyServer.getInstance().players
             .filter { !CocoaProxyPlugin.instance.whitelistedPlayers.contains(it.uniqueId) }
             .forEach { it.disconnect(CocoaProxyConstants.MAINTENANCE_MESSAGE) }
+    }
+
+    @Subscription(action = "permission-update")
+    fun onPermissionUpdate(jsonAppender: JsonAppender) {
+        ProxyServer.getInstance().getPlayer(
+            UUID.fromString(jsonAppender.getParam("uniqueId"))
+        )?.let {
+            it.displayName = jsonAppender.getParam("currentDisplayName")
+
+            jsonAppender.getParam("currentBungeePermissions").split(",").forEach { permission ->
+                it.setPermission(permission, true)
+            }
+        }
     }
 
     fun sendStaffNotification(
