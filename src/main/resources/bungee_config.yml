@@ -1,0 +1,4 @@
+motd:
+  normal: "&6&lSolexGames &7- &fOnline"
+  maintenance: "&6&lSolexGames &7- &cMaintenance"
+  active-timer: ""
