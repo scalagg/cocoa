@@ -66,8 +66,7 @@ class PlayerListener(private val plugin: CocoaProxyPlugin) : Listener {
     @EventHandler
     fun onServerConnect(event: ServerConnectEvent) {
         if (event.reason == ServerConnectEvent.Reason.JOIN_PROXY) {
-            val bestLobbyServer = plugin.fetchBestLobby() ?: return
-            event.target = bestLobbyServer
+            event.target = plugin.fetchBestLobby() ?: event.target
 
             ProxyServer.getInstance().scheduler.schedule(CocoaProxyPlugin.instance, {
                 val proxiedPlayer = ProxyServer.getInstance().getPlayer(event.player.uniqueId)
