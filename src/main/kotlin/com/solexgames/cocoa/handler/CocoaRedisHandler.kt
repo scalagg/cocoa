@@ -71,7 +71,10 @@ object CocoaRedisHandler : JedisHandler {
 
         fun publishAsync(): CompletableFuture<Void> {
             return CompletableFuture.runAsync {
-                CocoaProxyPlugin.instance.lemonJedisManager.publish(message)
+                CocoaProxyPlugin.instance.lemonJedisManager.runCommand {
+                    it.publish("cocoa", message)
+                    it.close()
+                }
             }
         }
 
@@ -79,6 +82,7 @@ object CocoaRedisHandler : JedisHandler {
             return CompletableFuture.runAsync {
                 CocoaProxyPlugin.instance.lemonJedisManager.runCommand {
                     it.publish(channel, message)
+                    it.close()
                 }
             }
         }
