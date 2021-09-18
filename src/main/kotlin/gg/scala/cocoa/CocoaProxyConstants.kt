@@ -1,4 +1,4 @@
-package com.solexgames.cocoa
+package gg.scala.cocoa
 
 import net.md_5.bungee.api.ChatColor
 

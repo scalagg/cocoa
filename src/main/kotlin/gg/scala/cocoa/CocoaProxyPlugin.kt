@@ -1,15 +1,15 @@
-package com.solexgames.cocoa
+package gg.scala.cocoa
 
 import co.aikar.commands.BungeeCommandManager
 import co.aikar.commands.ConditionFailedException
 import co.aikar.commands.MessageType
 import com.imaginarycode.minecraft.redisbungee.RedisBungee
 import com.imaginarycode.minecraft.redisbungee.RedisBungeeAPI
-import com.solexgames.cocoa.command.HubCommand
-import com.solexgames.cocoa.command.MaintenanceCommand
-import com.solexgames.cocoa.handler.CocoaRedisHandler
-import com.solexgames.cocoa.listener.PlayerListener
-import com.solexgames.cocoa.util.UUIDUtil
+import gg.scala.cocoa.command.HubCommand
+import gg.scala.cocoa.command.MaintenanceCommand
+import gg.scala.cocoa.handler.CocoaRedisHandler
+import gg.scala.cocoa.listener.PlayerListener
+import gg.scala.cocoa.util.UUIDUtil
 import com.solexgames.datastore.commons.connection.impl.redis.AuthRedisConnection
 import com.solexgames.datastore.commons.connection.impl.redis.NoAuthRedisConnection
 import com.solexgames.datastore.commons.layer.impl.RedisStorageLayer

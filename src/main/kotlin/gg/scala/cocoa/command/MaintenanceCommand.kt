@@ -1,12 +1,12 @@
-package com.solexgames.cocoa.command
+package gg.scala.cocoa.command
 
 import co.aikar.commands.BaseCommand
 import co.aikar.commands.CommandHelp
 import co.aikar.commands.ConditionFailedException
 import co.aikar.commands.annotation.*
-import com.solexgames.cocoa.CocoaProxyPlugin
-import com.solexgames.cocoa.handler.CocoaRedisHandler
-import com.solexgames.cocoa.util.UUIDUtil
+import gg.scala.cocoa.CocoaProxyPlugin
+import gg.scala.cocoa.handler.CocoaRedisHandler
+import gg.scala.cocoa.util.UUIDUtil
 import net.md_5.bungee.api.ChatColor
 import net.md_5.bungee.api.CommandSender
 import java.util.*

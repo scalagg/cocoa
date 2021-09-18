@@ -1,4 +1,4 @@
-package com.solexgames.cocoa.util
+package gg.scala.cocoa.util
 
 import net.evilblock.cubed.Cubed
 import java.util.*

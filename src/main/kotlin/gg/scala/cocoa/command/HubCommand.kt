@@ -1,9 +1,9 @@
-package com.solexgames.cocoa.command
+package gg.scala.cocoa.command
 
 import co.aikar.commands.BaseCommand
 import co.aikar.commands.ConditionFailedException
 import co.aikar.commands.annotation.CommandAlias
-import com.solexgames.cocoa.CocoaProxyPlugin
+import gg.scala.cocoa.CocoaProxyPlugin
 import net.md_5.bungee.api.connection.ProxiedPlayer
 
 /**

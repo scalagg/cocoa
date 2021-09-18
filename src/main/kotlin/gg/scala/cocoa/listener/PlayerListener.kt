@@ -1,8 +1,8 @@
-package com.solexgames.cocoa.listener
+package gg.scala.cocoa.listener
 
-import com.solexgames.cocoa.CocoaProxyConstants
-import com.solexgames.cocoa.CocoaProxyPlugin
-import com.solexgames.cocoa.handler.CocoaRedisHandler
+import gg.scala.cocoa.CocoaProxyConstants
+import gg.scala.cocoa.CocoaProxyPlugin
+import gg.scala.cocoa.handler.CocoaRedisHandler
 import net.md_5.bungee.api.ChatColor
 import net.md_5.bungee.api.ProxyServer
 import net.md_5.bungee.api.event.*

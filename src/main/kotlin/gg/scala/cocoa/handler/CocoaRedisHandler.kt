@@ -1,7 +1,7 @@
-package com.solexgames.cocoa.handler
+package gg.scala.cocoa.handler
 
-import com.solexgames.cocoa.CocoaProxyConstants
-import com.solexgames.cocoa.CocoaProxyPlugin
+import gg.scala.cocoa.CocoaProxyConstants
+import gg.scala.cocoa.CocoaProxyPlugin
 import com.solexgames.redis.annotation.Subscription
 import com.solexgames.redis.handler.JedisHandler
 import com.solexgames.redis.json.JsonAppender
@@ -41,6 +41,7 @@ object CocoaRedisHandler : JedisHandler {
         sender: ProxiedPlayer,
         notification: String,
     ): CompletableFuture<Void> {
+        println("sending notification")
         return buildMessage(
             "staff-message",
             HashMap<String, String>().also {
@@ -52,7 +53,7 @@ object CocoaRedisHandler : JedisHandler {
                 it["server"] = "proxy"
                 it["with-server"] = "false"
             }
-        ).publishAsync("lemon:spigot")
+        ).publishAsyncToLemon()
     }
 
     fun buildMessage(packet: String, message: Map<String, String>): RedisMessage {
@@ -78,11 +79,19 @@ object CocoaRedisHandler : JedisHandler {
             }
         }
 
+        fun publishAsyncToLemon(): CompletableFuture<Void> {
+            return CompletableFuture.runAsync {
+                CocoaProxyPlugin.instance.lemonJedisManager.runCommand {
+                    it.publish("lemon:spigot", message)
+//                    it.close()
+                }
+            }
+        }
+
         fun publishAsync(channel: String): CompletableFuture<Void> {
             return CompletableFuture.runAsync {
                 CocoaProxyPlugin.instance.lemonJedisManager.runCommand {
                     it.publish(channel, message)
-                    it.close()
                 }
             }
         }
