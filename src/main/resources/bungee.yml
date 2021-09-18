@@ -1,6 +1,6 @@
 name: Cocoa
 version: 1.0.0-dev
-main: com.solexgames.cocoa.CocoaProxyPlugin
+main: gg.scala.cocoa.CocoaProxyPlugin
 
-author: SolexGames
-website: https://solexgames.com
+author: Scala
+website: https://scala.gg
