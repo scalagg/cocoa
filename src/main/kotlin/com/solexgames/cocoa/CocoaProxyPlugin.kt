@@ -51,6 +51,8 @@ class CocoaProxyPlugin : Plugin() {
     val whitelistedPlayers = mutableListOf<UUID>()
     val proxySettings = mutableMapOf<String, Boolean>()
 
+    val messages = mutableMapOf<String, String>()
+
     val maintenance: Boolean
         get() = proxySettings.getOrDefault("maintenance", false)
 
@@ -112,9 +114,9 @@ class CocoaProxyPlugin : Plugin() {
 
     fun fetchBestMessage(): String {
         return if (maintenance) {
-            config.getString("motd.maintenance")
+            messages["maintenance-motd"]!!
         } else {
-            config.getString("motd.normal")
+            messages["normal-motd"]!!
         }
     }
 
@@ -139,6 +141,13 @@ class CocoaProxyPlugin : Plugin() {
         config = ConfigurationProvider
             .getProvider(YamlConfiguration::class.java)
             .load(File(dataFolder, "config.yml"))
+
+        messages["maintenance-motd"] = ChatColor.translateAlternateColorCodes(
+            '&', config.getString("motd.maintenance")
+        )
+        messages["normal-motd"] = ChatColor.translateAlternateColorCodes(
+            '&', config.getString("motd.normal")
+        )
     }
 
     private fun loadRedisHandler() {
@@ -200,6 +209,10 @@ class CocoaProxyPlugin : Plugin() {
                 it.forEach { entry ->
                     proxySettings[entry.key] = entry.value
                 }
+            }
+
+            settingsLayer.runCommand {
+                it.hset("cocoa:players", config.getString("proxy-id"), proxy.players.size.toString())
             }
         }, 0L, 1L, TimeUnit.SECONDS)
     }

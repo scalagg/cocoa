@@ -1,5 +1,7 @@
 package com.solexgames.cocoa
 
+import net.md_5.bungee.api.ChatColor
+
 /**
  * @author GrowlyX
  * @since 9/12/2021
@@ -7,6 +9,6 @@ package com.solexgames.cocoa
 object CocoaProxyConstants {
 
     @JvmStatic
-    val MAINTENANCE_MESSAGE = "${net.md_5.bungee.api.ChatColor.RED}Sorry, but the server's in maintenance."
+    val MAINTENANCE_MESSAGE = "${ChatColor.RED}Sorry, but the server's in maintenance."
 
 }
