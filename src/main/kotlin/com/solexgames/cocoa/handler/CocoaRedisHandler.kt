@@ -52,7 +52,7 @@ object CocoaRedisHandler : JedisHandler {
                 it["server"] = "proxy"
                 it["with-server"] = "false"
             }
-        ).publishAsync()
+        ).publishAsync("lemon:spigot")
     }
 
     fun buildMessage(packet: String, message: Map<String, String>): RedisMessage {

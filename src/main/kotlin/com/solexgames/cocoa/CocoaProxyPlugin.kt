@@ -3,6 +3,8 @@ package com.solexgames.cocoa
 import co.aikar.commands.BungeeCommandManager
 import co.aikar.commands.ConditionFailedException
 import co.aikar.commands.MessageType
+import com.imaginarycode.minecraft.redisbungee.RedisBungee
+import com.imaginarycode.minecraft.redisbungee.RedisBungeeAPI
 import com.solexgames.cocoa.command.HubCommand
 import com.solexgames.cocoa.command.MaintenanceCommand
 import com.solexgames.cocoa.handler.CocoaRedisHandler
@@ -211,8 +213,12 @@ class CocoaProxyPlugin : Plugin() {
                 }
             }
 
-            settingsLayer.runCommand {
-                it.hset("cocoa:players", config.getString("proxy-id"), proxy.players.size.toString())
+            try {
+                settingsLayer.runCommand {
+                    it.hset("cocoa:players", "global", RedisBungee.getApi().playerCount.toString())
+                }
+            } catch (e: Exception) {
+                logger.warning("Failed to update online players! Is RedisBungee not enabled?")
             }
         }, 0L, 1L, TimeUnit.SECONDS)
     }
