@@ -3,6 +3,8 @@ package gg.scala.cocoa.listener
 import gg.scala.cocoa.CocoaProxyConstants
 import gg.scala.cocoa.CocoaProxyPlugin
 import gg.scala.cocoa.handler.CocoaRedisHandler
+import gg.scala.cocoa.handler.DataStoreHandler
+import gg.scala.cocoa.util.GrantRecalculationUtil
 import net.md_5.bungee.api.ChatColor
 import net.md_5.bungee.api.ProxyServer
 import net.md_5.bungee.api.event.*
@@ -14,7 +16,9 @@ import java.util.concurrent.TimeUnit
  * @author GrowlyX
  * @since 9/12/2021
  */
-class PlayerListener(private val plugin: CocoaProxyPlugin) : Listener {
+class PlayerListener(
+    private val plugin: CocoaProxyPlugin
+) : Listener {
 
     @EventHandler
     fun onPing(event: ProxyPingEvent) {
@@ -34,6 +38,21 @@ class PlayerListener(private val plugin: CocoaProxyPlugin) : Listener {
             event.cancelReason = CocoaProxyConstants.MAINTENANCE_MESSAGE
             event.isCancelled = true
             return
+        }
+
+        DataStoreHandler.fetchGrantsFor(event.connection.uniqueId).thenAccept {
+            val prominent = GrantRecalculationUtil.getProminentGrant(it)
+
+            if (prominent != null) {
+                val rank = prominent.getRank()
+
+                if (rank != null) {
+                    if (rank.getCompoundedPermissions().contains("%cocoa.staff")) {
+                        ProxyServer.getInstance().getPlayer(event.connection.uniqueId)
+                            ?.setPermission("cocoa.staff", true)
+                    }
+                }
+            }
         }
     }
 
@@ -66,7 +85,9 @@ class PlayerListener(private val plugin: CocoaProxyPlugin) : Listener {
     @EventHandler
     fun onServerConnect(event: ServerConnectEvent) {
         if (event.reason == ServerConnectEvent.Reason.JOIN_PROXY) {
-            event.target = plugin.fetchBestLobby() ?: event.target
+            event.target = (if (event.player.hasPermission("cocoa.staff")) {
+                plugin.fetchBestRestrictedLobby()
+            } else plugin.fetchBestLobby()) ?: event.target
 
             ProxyServer.getInstance().scheduler.schedule(CocoaProxyPlugin.instance, {
                 val proxiedPlayer = ProxyServer.getInstance().getPlayer(event.player.uniqueId)

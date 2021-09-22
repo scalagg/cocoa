@@ -14,6 +14,8 @@ import gg.scala.banana.credentials.BananaCredentials
 import gg.scala.banana.options.BananaOptions
 import gg.scala.cocoa.command.HubCommand
 import gg.scala.cocoa.command.MaintenanceCommand
+import gg.scala.cocoa.handler.CocoaRedisHandler
+import gg.scala.cocoa.handler.LemonRedisHandler
 import gg.scala.cocoa.listener.PlayerListener
 import gg.scala.cocoa.util.UUIDUtil
 import net.evilblock.cubed.Cubed
@@ -210,7 +212,8 @@ class CocoaProxyPlugin : Plugin() {
             )
             .build()
 
-        proxyBanana.registerClass(CocoaProxyConstants)
+        proxyBanana.registerClass(CocoaRedisHandler)
+        spigotBanana.registerClass(LemonRedisHandler)
 
         maintenanceLayer = RedisStorageBuilder<UUID>()
             .setConnection(connection)
