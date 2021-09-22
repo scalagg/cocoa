@@ -37,7 +37,7 @@ class MaintenanceCommand(private val plugin: CocoaProxyPlugin) : BaseCommand() {
                     CocoaRedisHandler.buildMessage(
                         "maintenance-kick",
                         mapOf()
-                    ).publishAsync("cocoa")
+                    ).dispatch("cocoa")
 
                     "${ChatColor.GREEN}Maintenance mode has been enabled."
                 } else {

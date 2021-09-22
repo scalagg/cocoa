@@ -1,37 +1,35 @@
 package gg.scala.cocoa.handler
 
+import gg.scala.banana.annotate.Subscribe
+import gg.scala.banana.message.Message
+import gg.scala.banana.subscribe.marker.BananaHandler
 import gg.scala.cocoa.CocoaProxyConstants
 import gg.scala.cocoa.CocoaProxyPlugin
-import com.solexgames.redis.annotation.Subscription
-import com.solexgames.redis.handler.JedisHandler
-import com.solexgames.redis.json.JsonAppender
 import net.md_5.bungee.api.ProxyServer
 import net.md_5.bungee.api.connection.ProxiedPlayer
 import java.util.*
-import java.util.concurrent.CompletableFuture
-import kotlin.collections.HashMap
 
 /**
  * @author GrowlyX
  * @since 9/12/2021
  */
-object CocoaRedisHandler : JedisHandler {
+object CocoaRedisHandler : BananaHandler {
 
-    @Subscription(action = "maintenance-kick")
-    fun onMaintenanceKick(jsonAppender: JsonAppender) {
+   @Subscribe("maintenance-kick")
+    fun onMaintenanceKick(message: Message) {
         ProxyServer.getInstance().players
             .filter { !CocoaProxyPlugin.instance.whitelistedPlayers.contains(it.uniqueId) }
             .forEach { it.disconnect(CocoaProxyConstants.MAINTENANCE_MESSAGE) }
     }
 
-    @Subscription(action = "permission-update")
-    fun onPermissionUpdate(jsonAppender: JsonAppender) {
+   @Subscribe("permission-update")
+    fun onPermissionUpdate(message: Message) {
         ProxyServer.getInstance().getPlayer(
-            UUID.fromString(jsonAppender.getParam("uniqueId"))
+            UUID.fromString(message["uniqueId"])
         )?.let {
-            it.displayName = jsonAppender.getParam("currentDisplayName")
+            it.displayName = message["currentDisplayName"]
 
-            jsonAppender.getParam("currentBungeePermissions").split(",").forEach { permission ->
+            message["currentBungeePermissions"]!!.split(",").forEach { permission ->
                 it.setPermission(permission, true)
             }
         }
@@ -40,9 +38,8 @@ object CocoaRedisHandler : JedisHandler {
     fun sendStaffNotification(
         sender: ProxiedPlayer,
         notification: String,
-    ): CompletableFuture<Void> {
-        println("sending notification")
-        return buildMessage(
+    ) {
+        buildMessage(
             "staff-message",
             HashMap<String, String>().also {
                 it["sender-fancy"] = sender.displayName
@@ -53,52 +50,14 @@ object CocoaRedisHandler : JedisHandler {
                 it["server"] = "proxy"
                 it["with-server"] = "false"
             }
-        ).publishAsyncToLemon()
+        ).dispatch("lemon:spigot")
     }
 
-    fun buildMessage(packet: String, message: Map<String, String>): RedisMessage {
-        return RedisMessage(JsonAppender(packet).also {
+    fun buildMessage(packet: String, message: Map<String, String>): Message {
+        return Message(packet).also {
             message.forEach { (key, value) ->
-                it.put(key, value)
+                it[key] = value
             }
-        }.asJson)
-    }
-
-    /**
-     * @author puugz, GrowlyX
-     * @since 27/08/2021 21:27
-     */
-    class RedisMessage(private val message: String) {
-
-        fun publishAsync(): CompletableFuture<Void> {
-            return CompletableFuture.runAsync {
-                CocoaProxyPlugin.instance.lemonJedisManager.runCommand {
-                    it.publish("cocoa", message)
-                    it.close()
-                }
-            }
-        }
-
-        fun publishAsyncToLemon(): CompletableFuture<Void> {
-            return CompletableFuture.runAsync {
-                CocoaProxyPlugin.instance.lemonJedisManager.runCommand {
-                    it.publish("lemon:spigot", message)
-//                    it.close()
-                }
-            }
-        }
-
-        fun publishAsync(channel: String): CompletableFuture<Void> {
-            return CompletableFuture.runAsync {
-                CocoaProxyPlugin.instance.lemonJedisManager.runCommand {
-                    it.publish(channel, message)
-                }
-            }
-        }
-
-        fun publishSync() {
-            CocoaProxyPlugin.instance.lemonJedisManager.publish(message)
         }
     }
-
 }

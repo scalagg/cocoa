@@ -83,6 +83,10 @@ class PlayerListener(private val plugin: CocoaProxyPlugin) : Listener {
                 event.player.sendMessage("${ChatColor.RED}Your connection to ${ChatColor.BOLD}${event.target.name}${ChatColor.RED} has been blocked due to you not having permission to access it.")
                 event.isCancelled = true
             }
+
+            if (event.player.hasPermission("cocoa.staff") && plugin.isLobbyServer(event.target) && !plugin.isRestrictedLobbyServer(event.target)) {
+                event.target = plugin.fetchBestRestrictedLobby() ?: event.target
+            }
         }
     }
 }

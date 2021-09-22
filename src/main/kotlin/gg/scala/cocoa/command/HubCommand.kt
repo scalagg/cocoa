@@ -18,7 +18,9 @@ class HubCommand(private val plugin: CocoaProxyPlugin) : BaseCommand() {
             throw ConditionFailedException("You're already in a hub.")
         }
 
-        val bestLobby = plugin.fetchBestLobby() ?: throw ConditionFailedException("We couldn't find an available lobby for you.")
+        val bestLobby = if (player.hasPermission("cocoa.staff")) {
+            plugin.fetchBestRestrictedLobby()
+        } else plugin.fetchBestLobby() ?: throw ConditionFailedException("We couldn't find an available lobby for you.")
 
         player.connect(bestLobby)
     }

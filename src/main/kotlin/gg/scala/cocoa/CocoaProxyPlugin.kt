@@ -4,20 +4,22 @@ import co.aikar.commands.BungeeCommandManager
 import co.aikar.commands.ConditionFailedException
 import co.aikar.commands.MessageType
 import com.imaginarycode.minecraft.redisbungee.RedisBungee
-import com.imaginarycode.minecraft.redisbungee.RedisBungeeAPI
-import gg.scala.cocoa.command.HubCommand
-import gg.scala.cocoa.command.MaintenanceCommand
-import gg.scala.cocoa.handler.CocoaRedisHandler
-import gg.scala.cocoa.listener.PlayerListener
-import gg.scala.cocoa.util.UUIDUtil
 import com.solexgames.datastore.commons.connection.impl.redis.AuthRedisConnection
 import com.solexgames.datastore.commons.connection.impl.redis.NoAuthRedisConnection
 import com.solexgames.datastore.commons.layer.impl.RedisStorageLayer
 import com.solexgames.datastore.commons.storage.impl.RedisStorageBuilder
-import com.solexgames.redis.JedisBuilder
-import com.solexgames.redis.JedisManager
-import com.solexgames.redis.JedisSettings
+import gg.scala.banana.Banana
+import gg.scala.banana.BananaBuilder
+import gg.scala.banana.credentials.BananaCredentials
+import gg.scala.banana.options.BananaOptions
+import gg.scala.cocoa.command.HubCommand
+import gg.scala.cocoa.command.MaintenanceCommand
+import gg.scala.cocoa.listener.PlayerListener
+import gg.scala.cocoa.util.UUIDUtil
 import net.evilblock.cubed.Cubed
+import net.evilblock.cubed.serializers.Serializers
+import net.evilblock.cubed.store.uuidcache.UUIDCache
+import net.evilblock.cubed.store.uuidcache.impl.RedisUUIDCache
 import net.evilblock.cubed.util.BungeeConfigUtils
 import net.md_5.bungee.api.ChatColor
 import net.md_5.bungee.api.config.ServerInfo
@@ -44,8 +46,8 @@ class CocoaProxyPlugin : Plugin() {
 
     lateinit var config: Configuration
 
-    lateinit var cocoaJedisManager: JedisManager
-    lateinit var lemonJedisManager: JedisManager
+    lateinit var proxyBanana: Banana
+    lateinit var spigotBanana: Banana
 
     lateinit var maintenanceLayer: RedisStorageLayer<UUID>
     lateinit var settingsLayer: RedisStorageLayer<Boolean>
@@ -110,8 +112,18 @@ class CocoaProxyPlugin : Plugin() {
             .firstOrNull { isLobbyServer(it) }
     }
 
+    fun fetchBestRestrictedLobby(): ServerInfo? {
+        return proxy.servers.values
+            .sortedByDescending { it.players.size }
+            .firstOrNull { isRestrictedLobbyServer(it) } ?: fetchBestLobby()
+    }
+
     fun isLobbyServer(info: ServerInfo): Boolean {
         return (info.name.startsWith("hub") || info.name.startsWith("lobby")) && !info.isRestricted
+    }
+
+    fun isRestrictedLobbyServer(info: ServerInfo): Boolean {
+        return (info.name.startsWith("hub") || info.name.startsWith("lobby")) && info.name.contains("restricted")
     }
 
     fun fetchBestMessage(): String {
@@ -165,7 +177,7 @@ class CocoaProxyPlugin : Plugin() {
                 config.getString("redis.password")
             )
         }
-        val jedisSettings = JedisSettings(
+        val jedisSettings = BananaCredentials(
             config.getString("redis.address"),
             config.getInt("redis.port"),
             config.getBoolean("redis.authentication"),
@@ -174,16 +186,31 @@ class CocoaProxyPlugin : Plugin() {
 
         val executor = Executors.newScheduledThreadPool(1)
 
-        cocoaJedisManager = JedisBuilder()
-            .withChannel("cocoa")
-            .withHandler(CocoaRedisHandler)
-            .withSettings(jedisSettings)
+        proxyBanana = BananaBuilder()
+            .options(
+                BananaOptions(
+                    channel = "cocoa",
+                    async = true
+                )
+            )
+            .credentials(
+                jedisSettings
+            )
             .build()
 
-        lemonJedisManager = JedisBuilder()
-            .withChannel("lemon:spigot")
-            .withSettings(jedisSettings)
+        spigotBanana = BananaBuilder()
+            .options(
+                BananaOptions(
+                    channel = "lemon:spigot",
+                    async = true
+                )
+            )
+            .credentials(
+                jedisSettings
+            )
             .build()
+
+        proxyBanana.registerClass(CocoaProxyConstants)
 
         maintenanceLayer = RedisStorageBuilder<UUID>()
             .setConnection(connection)
@@ -197,7 +224,7 @@ class CocoaProxyPlugin : Plugin() {
             .setSection("cocoa:settings")
             .build()
 
-        Cubed.instance.loadStore(cocoaJedisManager)
+        Cubed.instance.loadStore(proxyBanana)
 
         executor.scheduleAtFixedRate({
             maintenanceLayer.fetchAllEntries().thenAccept {

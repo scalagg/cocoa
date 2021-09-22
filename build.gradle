@@ -1,5 +1,5 @@
 plugins {
-    id "org.jetbrains.kotlin.jvm" version "1.5.30"
+    id "org.jetbrains.kotlin.jvm" version "1.5.21"
     id "com.github.johnrengelman.shadow" version "5.2.0"
 }
 
@@ -7,18 +7,24 @@ group = 'com.solexgames'
 version = '1.0-SNAPSHOT'
 
 repositories {
-    mavenCentral()
-
-    maven { url = 'https://oss.sonatype.org/content/groups/public/' }
     maven { url = "https://repo.aikar.co/content/groups/aikar/" }
+
+    mavenCentral()
+    mavenLocal()
+
+    maven { url = uri("https://hub.spigotmc.org/nexus/content/repositories/snapshots/") }
+    maven { url = 'https://oss.sonatype.org/content/groups/public/' }
+
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:1.5.30"
-    implementation "co.aikar:acf-bungee:0.5.0-SNAPSHOT"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:1.5.21"
 
-    implementation fileTree(dir: "internal")
-    compileOnly fileTree(dir: "lib")
+    implementation "co.aikar:acf-bungee:0.5.0-SNAPSHOT"
+    implementation 'redis.clients:jedis:3.7.0'
+
+    implementation fileTree("internal")
+    compileOnly fileTree("lib")
 
     compileOnly 'net.md-5:bungeecord-api:1.16-R0.4'
 }
