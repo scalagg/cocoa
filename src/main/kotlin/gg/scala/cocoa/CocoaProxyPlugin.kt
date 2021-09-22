@@ -215,6 +215,9 @@ class CocoaProxyPlugin : Plugin() {
         proxyBanana.registerClass(CocoaRedisHandler)
         spigotBanana.registerClass(LemonRedisHandler)
 
+        proxyBanana.subscribe()
+        spigotBanana.subscribe()
+
         maintenanceLayer = RedisStorageBuilder<UUID>()
             .setConnection(connection)
             .setType(UUID::class.java)
