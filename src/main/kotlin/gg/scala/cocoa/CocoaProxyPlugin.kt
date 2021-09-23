@@ -19,9 +19,6 @@ import gg.scala.cocoa.handler.LemonRedisHandler
 import gg.scala.cocoa.listener.PlayerListener
 import gg.scala.cocoa.util.UUIDUtil
 import net.evilblock.cubed.Cubed
-import net.evilblock.cubed.serializers.Serializers
-import net.evilblock.cubed.store.uuidcache.UUIDCache
-import net.evilblock.cubed.store.uuidcache.impl.RedisUUIDCache
 import net.evilblock.cubed.util.BungeeConfigUtils
 import net.md_5.bungee.api.ChatColor
 import net.md_5.bungee.api.config.ServerInfo
@@ -179,7 +176,7 @@ class CocoaProxyPlugin : Plugin() {
                 config.getString("redis.password")
             )
         }
-        val jedisSettings = BananaCredentials(
+        val credentials = BananaCredentials(
             config.getString("redis.address"),
             config.getInt("redis.port"),
             config.getBoolean("redis.authentication"),
@@ -196,7 +193,7 @@ class CocoaProxyPlugin : Plugin() {
                 )
             )
             .credentials(
-                jedisSettings
+                credentials
             )
             .build()
 
@@ -204,11 +201,12 @@ class CocoaProxyPlugin : Plugin() {
             .options(
                 BananaOptions(
                     channel = "lemon:spigot",
-                    async = true
+                    async = true,
+                    ignoreNonExistentHandlers = true
                 )
             )
             .credentials(
-                jedisSettings
+                credentials
             )
             .build()
 
