@@ -45,7 +45,7 @@ object CocoaRedisHandler : BananaHandler {
                 it["sender-fancy"] = sender.displayName
                 it["message"] = notification
                 it["permission"] = "lemon.staff"
-                it["messageType"] = "NOTIFICATION"
+                it["message-type"] = "NOTIFICATION"
 
                 it["server"] = "proxy"
                 it["with-server"] = "false"

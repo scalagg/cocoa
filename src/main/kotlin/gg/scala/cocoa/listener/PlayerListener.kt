@@ -98,7 +98,7 @@ class PlayerListener(
                         "${ChatColor.AQUA}${event.player.displayName}${ChatColor.DARK_AQUA} connected to ${ChatColor.AQUA}${event.target.name}${ChatColor.DARK_AQUA}."
                     )
                 }
-            }, 1L, TimeUnit.SECONDS)
+            }, 10L, TimeUnit.MILLISECONDS)
         } else {
             if (!event.target.canAccess(event.player)) {
                 event.player.sendMessage("${ChatColor.RED}Your connection to ${ChatColor.BOLD}${event.target.name}${ChatColor.RED} has been blocked due to you not having permission to access it.")
