@@ -76,8 +76,6 @@ class PlayerListener(
                 plugin.fetchBestRestrictedLobby()
             } else plugin.fetchBestLobby()) ?: event.target
 
-            println(event.player.hasPermission("cocoa.staff"))
-
             ProxyServer.getInstance().scheduler.schedule(CocoaProxyPlugin.instance, {
                 val proxiedPlayer = ProxyServer.getInstance().getPlayer(event.player.uniqueId)
 
