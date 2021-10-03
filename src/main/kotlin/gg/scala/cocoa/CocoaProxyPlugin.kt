@@ -26,11 +26,16 @@ import net.md_5.bungee.api.plugin.Plugin
 import net.md_5.bungee.config.Configuration
 import net.md_5.bungee.config.ConfigurationProvider
 import net.md_5.bungee.config.YamlConfiguration
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.io.File
 import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.logging.Level
+import java.util.logging.LogManager
+import java.util.logging.Logger.getLogger
 
 /**
  * @author GrowlyX
@@ -251,6 +256,12 @@ class CocoaProxyPlugin : Plugin() {
             } catch (e: Exception) {
                 logger.warning("Failed to update online players! Is RedisBungee not enabled?")
             }
+
+            println("Invalidated & update cached data.")
         }, 0L, 1L, TimeUnit.SECONDS)
+
+        executor.scheduleAtFixedRate({
+            System.gc()
+        }, 0L, 20L, TimeUnit.MILLISECONDS)
     }
 }

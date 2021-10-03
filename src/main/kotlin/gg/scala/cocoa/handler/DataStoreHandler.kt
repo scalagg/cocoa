@@ -44,13 +44,6 @@ object DataStoreHandler {
                 ranks[it.value.uuid] = it.value
             }
         }
-
-        listOf(
-            this.rankLayer, this.grantLayer
-        ).forEach {
-            it.supplyWithCustomGson(Serializers.gson)
-            it.fetchEntryByKey("testing")
-        }
     }
 
     fun findRank(uuid: UUID): Rank? {
@@ -75,7 +68,7 @@ object DataStoreHandler {
 
     fun fetchGrantsFor(uuid: UUID?): CompletableFuture<List<Grant>> {
         return fetchGrants(
-            Filters.eq("target", uuid.toString())
+            Filters.eq("target", uuid)
         ) { true }
     }
 

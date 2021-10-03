@@ -8,6 +8,6 @@ object GrantRecalculationUtil {
     fun getProminentGrant(grants: List<Grant>): Grant? {
         return grants
             .sortedByDescending { it.addedAt }
-            .firstOrNull { !it.isRemoved && !it.hasExpired && it.scopes.contains("global") }
+            .firstOrNull { it.isActive }
     }
 }

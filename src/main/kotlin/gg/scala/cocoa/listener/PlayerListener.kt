@@ -5,11 +5,13 @@ import gg.scala.cocoa.CocoaProxyPlugin
 import gg.scala.cocoa.handler.CocoaRedisHandler
 import gg.scala.cocoa.handler.DataStoreHandler
 import gg.scala.cocoa.util.GrantRecalculationUtil
+import net.evilblock.cubed.Cubed
 import net.md_5.bungee.api.ChatColor
 import net.md_5.bungee.api.ProxyServer
 import net.md_5.bungee.api.event.*
 import net.md_5.bungee.api.plugin.Listener
 import net.md_5.bungee.event.EventHandler
+import net.md_5.bungee.event.EventPriority
 import java.util.concurrent.TimeUnit
 
 /**
@@ -30,29 +32,14 @@ class PlayerListener(
         event.response.description = plugin.fetchBestMessage()
     }
 
-    @EventHandler
-    fun onJoin(event: PreLoginEvent) {
+    @EventHandler(priority = EventPriority.HIGHEST)
+    fun onLogin(event: LoginEvent) {
         val uniqueId = event.connection.uniqueId
 
         if (plugin.maintenance && !plugin.whitelistedPlayers.contains(uniqueId)) {
             event.cancelReason = CocoaProxyConstants.MAINTENANCE_MESSAGE
             event.isCancelled = true
             return
-        }
-
-        DataStoreHandler.fetchGrantsFor(event.connection.uniqueId).thenAccept {
-            val prominent = GrantRecalculationUtil.getProminentGrant(it)
-
-            if (prominent != null) {
-                val rank = prominent.getRank()
-
-                if (rank != null) {
-                    if (rank.getCompoundedPermissions().contains("%cocoa.staff")) {
-                        ProxyServer.getInstance().getPlayer(event.connection.uniqueId)
-                            ?.setPermission("cocoa.staff", true)
-                    }
-                }
-            }
         }
     }
 
@@ -88,6 +75,8 @@ class PlayerListener(
             event.target = (if (event.player.hasPermission("cocoa.staff")) {
                 plugin.fetchBestRestrictedLobby()
             } else plugin.fetchBestLobby()) ?: event.target
+
+            println(event.player.hasPermission("cocoa.staff"))
 
             ProxyServer.getInstance().scheduler.schedule(CocoaProxyPlugin.instance, {
                 val proxiedPlayer = ProxyServer.getInstance().getPlayer(event.player.uniqueId)
