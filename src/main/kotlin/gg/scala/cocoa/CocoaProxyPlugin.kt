@@ -257,9 +257,5 @@ class CocoaProxyPlugin : Plugin() {
                 logger.warning("Failed to update online players! Is RedisBungee not enabled?")
             }
         }, 0L, 1L, TimeUnit.SECONDS)
-
-        executor.scheduleAtFixedRate({
-            System.gc()
-        }, 0L, 100L, TimeUnit.MILLISECONDS)
     }
 }

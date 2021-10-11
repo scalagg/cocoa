@@ -8,6 +8,7 @@ import gg.scala.cocoa.CocoaProxyPlugin
 import net.md_5.bungee.api.ProxyServer
 import net.md_5.bungee.api.connection.ProxiedPlayer
 import java.util.*
+import java.util.concurrent.ForkJoinPool
 
 /**
  * @author GrowlyX
@@ -39,18 +40,22 @@ object CocoaRedisHandler : BananaHandler {
         sender: ProxiedPlayer,
         notification: String,
     ) {
-        buildMessage(
-            "staff-message",
-            HashMap<String, String>().also {
-                it["sender-fancy"] = sender.displayName
-                it["message"] = notification
-                it["permission"] = "lemon.staff"
-                it["message-type"] = "NOTIFICATION"
+        ForkJoinPool.commonPool().execute {
+            buildMessage(
+                "staff-message",
+                HashMap<String, String>().also {
+                    it["sender-fancy"] = sender.displayName
+                    it["message"] = notification
+                    it["permission"] = "lemon.staff"
+                    it["message-type"] = "NOTIFICATION"
 
-                it["server"] = "proxy"
-                it["with-server"] = "false"
-            }
-        ).dispatch("lemon:spigot")
+                    it["server"] = "proxy"
+                    it["with-server"] = "false"
+                }
+            ).dispatch(
+                "lemon:spigot"
+            )
+        }
     }
 
     fun buildMessage(packet: String, message: Map<String, String>): Message {
