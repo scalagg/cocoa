@@ -5,6 +5,7 @@ import gg.scala.banana.message.Message
 import gg.scala.banana.subscribe.marker.BananaHandler
 import gg.scala.cocoa.CocoaProxyConstants
 import gg.scala.cocoa.CocoaProxyPlugin
+import gg.scala.cocoa.dispatchToLemon
 import net.md_5.bungee.api.ProxyServer
 import net.md_5.bungee.api.connection.ProxiedPlayer
 import java.util.*
@@ -52,9 +53,7 @@ object CocoaRedisHandler : BananaHandler {
                     it["server"] = "proxy"
                     it["with-server"] = "false"
                 }
-            ).dispatch(
-                "lemon:spigot"
-            )
+            ).dispatchToLemon()
         }
     }
 

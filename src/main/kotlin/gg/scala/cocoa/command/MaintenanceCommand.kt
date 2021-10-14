@@ -5,6 +5,8 @@ import co.aikar.commands.CommandHelp
 import co.aikar.commands.ConditionFailedException
 import co.aikar.commands.annotation.*
 import gg.scala.cocoa.CocoaProxyPlugin
+import gg.scala.cocoa.dispatchToCocoa
+import gg.scala.cocoa.dispatchToLemon
 import gg.scala.cocoa.handler.CocoaRedisHandler
 import gg.scala.cocoa.util.UUIDUtil
 import net.md_5.bungee.api.ChatColor
@@ -37,7 +39,7 @@ class MaintenanceCommand(private val plugin: CocoaProxyPlugin) : BaseCommand() {
                     CocoaRedisHandler.buildMessage(
                         "maintenance-kick",
                         mapOf()
-                    ).dispatch("cocoa")
+                    ).dispatchToCocoa()
 
                     "${ChatColor.GREEN}Maintenance mode has been enabled."
                 } else {
@@ -76,7 +78,7 @@ class MaintenanceCommand(private val plugin: CocoaProxyPlugin) : BaseCommand() {
     @Subcommand("list|view")
     @Description("View all whitelisted players.")
     fun onList(sender: CommandSender) {
-        if (plugin.whitelistedPlayers.isNotEmpty()) {
+        if (plugin.whitelistedPlayers.isEmpty()) {
             throw ConditionFailedException("No one is whitelisted.")
         }
 
@@ -86,7 +88,7 @@ class MaintenanceCommand(private val plugin: CocoaProxyPlugin) : BaseCommand() {
             val nameList = mutableListOf<String>()
 
             it.forEach { entry ->
-                nameList.add(UUIDUtil.toName(entry.value))
+                UUIDUtil.toName(entry.value)?.let { it1 -> nameList.add(it1) }
             }
 
             return@thenApply nameList

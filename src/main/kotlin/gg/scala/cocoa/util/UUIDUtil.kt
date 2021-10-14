@@ -15,7 +15,7 @@ object UUIDUtil {
     }
 
     @JvmStatic
-    fun toName(uuid: UUID): String {
+    fun toName(uuid: UUID): String? {
         return Cubed.instance.uuidCache.name(uuid)
     }
 }
