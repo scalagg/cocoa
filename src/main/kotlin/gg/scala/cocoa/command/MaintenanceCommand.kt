@@ -5,7 +5,6 @@ import co.aikar.commands.CommandHelp
 import co.aikar.commands.ConditionFailedException
 import co.aikar.commands.annotation.*
 import gg.scala.cocoa.CocoaProxyPlugin
-import gg.scala.cocoa.CocoaUtilities
 import gg.scala.cocoa.handler.CocoaRedisHandler
 import gg.scala.cocoa.util.UUIDUtil
 import net.md_5.bungee.api.ChatColor
@@ -35,11 +34,11 @@ class MaintenanceCommand(private val plugin: CocoaProxyPlugin) : BaseCommand() {
 
             sender.sendMessage(
                 if (currentStatus) {
-                    CocoaUtilities.dispatchToCocoa(
-                        CocoaRedisHandler.buildMessage(
-                            "maintenance-kick",
-                            mapOf()
-                        )
+                    CocoaRedisHandler.buildMessage(
+                        "maintenance-kick",
+                        mapOf()
+                    ).dispatch(
+                        CocoaProxyPlugin.instance.proxyBanana,
                     )
 
                     "${ChatColor.GREEN}Maintenance mode has been enabled."

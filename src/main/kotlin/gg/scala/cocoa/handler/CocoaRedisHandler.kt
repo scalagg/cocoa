@@ -5,7 +5,6 @@ import gg.scala.banana.message.Message
 import gg.scala.banana.subscribe.marker.BananaHandler
 import gg.scala.cocoa.CocoaProxyConstants
 import gg.scala.cocoa.CocoaProxyPlugin
-import gg.scala.cocoa.CocoaUtilities
 import net.md_5.bungee.api.ProxyServer
 import net.md_5.bungee.api.connection.ProxiedPlayer
 import java.util.*
@@ -42,19 +41,19 @@ object CocoaRedisHandler : BananaHandler {
         notification: String,
     ) {
         ForkJoinPool.commonPool().execute {
-            CocoaUtilities.dispatchToLemon(
-                buildMessage(
-                    "staff-message",
-                    HashMap<String, String>().also {
-                        it["sender-fancy"] = sender.displayName
-                        it["message"] = notification
-                        it["permission"] = "lemon.staff"
-                        it["message-type"] = "NOTIFICATION"
+            buildMessage(
+                "staff-message",
+                HashMap<String, String>().also {
+                    it["sender-fancy"] = sender.displayName
+                    it["message"] = notification
+                    it["permission"] = "lemon.staff"
+                    it["message-type"] = "NOTIFICATION"
 
-                        it["server"] = "proxy"
-                        it["with-server"] = "false"
-                    }
-                )
+                    it["server"] = "proxy"
+                    it["with-server"] = "false"
+                }
+            ).dispatch(
+                CocoaProxyPlugin.instance.spigotBanana
             )
         }
     }
