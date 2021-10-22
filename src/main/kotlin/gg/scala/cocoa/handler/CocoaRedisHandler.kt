@@ -14,17 +14,39 @@ import java.util.concurrent.ForkJoinPool
  * @author GrowlyX
  * @since 9/12/2021
  */
-object CocoaRedisHandler : BananaHandler {
+object CocoaRedisHandler : BananaHandler
+{
 
-   @Subscribe("maintenance-kick")
-    fun onMaintenanceKick(message: Message) {
+    @Subscribe("send-server")
+    fun onSendServer(message: Message)
+    {
+        val uniqueId = UUID.fromString(message["uuid"])
+        val proxied = ProxyServer.getInstance().getPlayer(uniqueId)
+
+        if (proxied != null)
+        {
+            val info = ProxyServer.getInstance().getServerInfo(
+                message["server"]
+            )
+
+            if (info != null)
+            {
+                proxied.connect(info)
+            }
+        }
+    }
+
+    @Subscribe("maintenance-kick")
+    fun onMaintenanceKick(message: Message)
+    {
         ProxyServer.getInstance().players
             .filter { !CocoaProxyPlugin.instance.whitelistedPlayers.contains(it.uniqueId) }
             .forEach { it.disconnect(CocoaProxyConstants.MAINTENANCE_MESSAGE) }
     }
 
-   @Subscribe("permission-update")
-    fun onPermissionUpdate(message: Message) {
+    @Subscribe("permission-update")
+    fun onPermissionUpdate(message: Message)
+    {
         ProxyServer.getInstance().getPlayer(
             UUID.fromString(message["uniqueId"])
         )?.let {
@@ -39,7 +61,8 @@ object CocoaRedisHandler : BananaHandler {
     fun sendStaffNotification(
         sender: ProxiedPlayer,
         notification: String,
-    ) {
+    )
+    {
         ForkJoinPool.commonPool().execute {
             buildMessage(
                 "staff-message",
@@ -58,7 +81,8 @@ object CocoaRedisHandler : BananaHandler {
         }
     }
 
-    fun buildMessage(packet: String, message: Map<String, String>): Message {
+    fun buildMessage(packet: String, message: Map<String, String>): Message
+    {
         return Message(packet).also {
             message.forEach { (key, value) ->
                 it[key] = value
