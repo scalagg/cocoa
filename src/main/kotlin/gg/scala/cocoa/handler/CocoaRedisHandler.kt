@@ -32,6 +32,7 @@ object CocoaRedisHandler : BananaHandler
             if (info != null)
             {
                 proxied.connect(info)
+                println("Connecting now")
             }
         }
     }
