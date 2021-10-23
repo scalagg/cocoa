@@ -146,13 +146,16 @@ class PlayerListener(
         }
 
         val reasonForKick = event.kickReason
+        event.isCancelled = true
+        event.cancelServer = plugin.fetchBestLobby()
 
-        event.kickReasonComponent = TextComponent.fromLegacyText(
-            """
+        event.player.sendMessage(
+            *TextComponent.fromLegacyText(
+                """
                 ${ChatColor.RED}The server you were previously on is now down for:
                 $reasonForKick
-            """.trimIndent()
+                """.trimIndent()
+            )
         )
-        event.cancelServer = plugin.fetchBestLobby()
     }
 }
