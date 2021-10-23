@@ -15,6 +15,7 @@ import gg.scala.banana.options.BananaOptions
 import gg.scala.cocoa.command.HubCommand
 import gg.scala.cocoa.command.MaintenanceCommand
 import gg.scala.cocoa.handler.CocoaRedisHandler
+import gg.scala.cocoa.handler.CocoaSendServerHandler
 import gg.scala.cocoa.handler.LemonRedisHandler
 import gg.scala.cocoa.listener.PlayerListener
 import gg.scala.cocoa.util.UUIDUtil
@@ -216,6 +217,8 @@ class CocoaProxyPlugin : Plugin() {
             .build()
 
         proxyBanana.registerClass(CocoaRedisHandler)
+        proxyBanana.registerClass(CocoaSendServerHandler())
+
         spigotBanana.registerClass(LemonRedisHandler)
 
         proxyBanana.subscribe()
