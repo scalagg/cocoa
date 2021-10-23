@@ -217,8 +217,6 @@ class CocoaProxyPlugin : Plugin() {
             .build()
 
         proxyBanana.registerClass(CocoaRedisHandler)
-        proxyBanana.registerClass(CocoaSendServerHandler())
-
         spigotBanana.registerClass(LemonRedisHandler)
 
         proxyBanana.subscribe()
