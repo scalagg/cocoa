@@ -140,7 +140,7 @@ class PlayerListener(
             }
         }
 
-        if (plugin.isLobbyServer(kickedFrom))
+        if (kickedFrom != null && plugin.isLobbyServer(kickedFrom))
         {
             return
         }
