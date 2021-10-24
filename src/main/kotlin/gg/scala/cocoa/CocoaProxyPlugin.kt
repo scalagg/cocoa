@@ -15,7 +15,6 @@ import gg.scala.banana.options.BananaOptions
 import gg.scala.cocoa.command.HubCommand
 import gg.scala.cocoa.command.MaintenanceCommand
 import gg.scala.cocoa.handler.CocoaRedisHandler
-import gg.scala.cocoa.handler.CocoaSendServerHandler
 import gg.scala.cocoa.handler.LemonRedisHandler
 import gg.scala.cocoa.listener.PlayerListener
 import gg.scala.cocoa.util.UUIDUtil
@@ -27,16 +26,11 @@ import net.md_5.bungee.api.plugin.Plugin
 import net.md_5.bungee.config.Configuration
 import net.md_5.bungee.config.ConfigurationProvider
 import net.md_5.bungee.config.YamlConfiguration
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import java.io.File
 import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
-import java.util.logging.Level
-import java.util.logging.LogManager
-import java.util.logging.Logger.getLogger
 
 /**
  * @author GrowlyX
