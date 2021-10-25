@@ -149,13 +149,20 @@ class PlayerListener(
         event.isCancelled = true
         event.cancelServer = plugin.fetchBestLobby()
 
-        event.player.sendMessage(
-            *TextComponent.fromLegacyText(
-                """
-                ${ChatColor.RED}The server you were previously on is now down for:
+
+        if (
+            !reasonForKick.contains("ban") ||
+            !reasonForKick.contains("blacklist")
+        )
+        {
+            event.player.sendMessage(
+                *TextComponent.fromLegacyText(
+                    """
+                ${ChatColor.RED}The server you were on is now down for:
                 $reasonForKick
                 """.trimIndent()
+                )
             )
-        )
+        }
     }
 }
