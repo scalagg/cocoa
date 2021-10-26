@@ -142,6 +142,7 @@ class PlayerListener(
         event.cancelServer = plugin.fetchBestLobby()
 
         if (
+            reasonForKick.isNotBlank() ||
             !reasonForKick.contains("ban") ||
             !reasonForKick.contains("blacklist")
         )
