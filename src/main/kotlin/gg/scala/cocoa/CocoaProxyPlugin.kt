@@ -118,11 +118,11 @@ class CocoaProxyPlugin : Plugin() {
     }
 
     fun isLobbyServer(info: ServerInfo): Boolean {
-        return (info.name.startsWith("hub") || info.name.startsWith("lobby")) && !info.isRestricted
+        return (info.name.contains("hub") || info.name.contains("lobby")) && !info.isRestricted
     }
 
     fun isRestrictedLobbyServer(info: ServerInfo): Boolean {
-        return (info.name.startsWith("hub") || info.name.startsWith("lobby")) && info.name.contains("restricted")
+        return (info.name.contains("hub") || info.name.contains("lobby")) && info.name.contains("restricted")
     }
 
     fun fetchBestMessage(): String {
