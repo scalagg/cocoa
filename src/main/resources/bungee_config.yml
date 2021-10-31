@@ -8,7 +8,8 @@ redis:
   authentication: false
   password: ""
 vpn-blocker:
+  enabled: true
   api-key: ""
   alerts:
     enabled: true
-    format: "&b[S] &3[%s] &4&s &ctried logging on with a vpn."
+    format: "&b[S] &3[na-proxy] &4&s &ctried logging on with a vpn."

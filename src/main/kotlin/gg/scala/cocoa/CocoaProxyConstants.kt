@@ -11,4 +11,7 @@ object CocoaProxyConstants {
     @JvmStatic
     val MAINTENANCE_MESSAGE = "${ChatColor.RED}The server is currently whitelisted.\n${ChatColor.RED}Join our discord for more information."
 
+    @JvmStatic
+    val VPN_MESSAGE = "${ChatColor.RED}You cannot log on with a VPN!"
+
 }

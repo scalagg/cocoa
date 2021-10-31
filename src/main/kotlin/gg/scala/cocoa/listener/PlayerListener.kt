@@ -3,6 +3,7 @@ package gg.scala.cocoa.listener
 import gg.scala.cocoa.CocoaProxyConstants
 import gg.scala.cocoa.CocoaProxyPlugin
 import gg.scala.cocoa.handler.CocoaRedisHandler
+import gg.scala.cocoa.vpn.CocoaVpnHandler
 import net.md_5.bungee.api.AbstractReconnectHandler
 import net.md_5.bungee.api.ChatColor
 import net.md_5.bungee.api.ProxyServer
@@ -45,6 +46,32 @@ class PlayerListener(
             event.cancelReason = CocoaProxyConstants.MAINTENANCE_MESSAGE
             event.isCancelled = true
             return
+        }
+
+        if (plugin.config.getBoolean("vpn-blocker.enabled"))
+        {
+            val requestData = CocoaVpnHandler.fetch(
+                event.connection.address.address.hostAddress
+            )
+
+            if (requestData != null)
+            {
+                if (!requestData.shouldAllow)
+                {
+                    event.cancelReason = CocoaProxyConstants.VPN_MESSAGE
+                    event.isCancelled = true
+
+                    if (plugin.config.getBoolean("vpn-blocker.alerts.enabled"))
+                    {
+                        val alert = String.format(
+                            plugin.config.getString("vpn-blocker.alerts.format"),
+                            event.connection.name
+                        )
+
+                        CocoaRedisHandler.sendStaffNotification(null, alert)
+                    }
+                }
+            }
         }
     }
 

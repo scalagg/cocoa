@@ -42,7 +42,7 @@ object CocoaRedisHandler : BananaHandler
     }
 
     fun sendStaffNotification(
-        sender: ProxiedPlayer,
+        sender: ProxiedPlayer?,
         notification: String,
     )
     {
@@ -50,7 +50,7 @@ object CocoaRedisHandler : BananaHandler
             buildMessage(
                 "staff-message",
                 HashMap<String, String>().also {
-                    it["sender-fancy"] = sender.displayName
+                    it["sender-fancy"] = sender?.displayName ?: ""
                     it["message"] = notification
                     it["permission"] = "lemon.staff"
                     it["message-type"] = "NOTIFICATION"
