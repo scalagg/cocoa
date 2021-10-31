@@ -17,23 +17,27 @@ import java.util.*
  */
 @CommandAlias("maintenance")
 @CommandPermission("cocoa.command.maintenance")
-class MaintenanceCommand(private val plugin: CocoaProxyPlugin) : BaseCommand() {
+class MaintenanceCommand(private val plugin: CocoaProxyPlugin) : BaseCommand()
+{
 
     @Default
     @HelpCommand
     @Syntax("[help]")
-    fun onHelp(help: CommandHelp) {
+    fun onHelp(help: CommandHelp)
+    {
         help.showHelp()
     }
 
     @Subcommand("toggle")
     @Description("Toggle maintenance mode.")
-    fun onToggle(sender: CommandSender) {
+    fun onToggle(sender: CommandSender)
+    {
         plugin.updateMaintenanceMode().thenRun {
             val currentStatus = plugin.maintenance
 
             sender.sendMessage(
-                if (currentStatus) {
+                if (currentStatus)
+                {
                     CocoaRedisHandler.buildMessage(
                         "maintenance-kick",
                         mapOf()
@@ -42,7 +46,8 @@ class MaintenanceCommand(private val plugin: CocoaProxyPlugin) : BaseCommand() {
                     )
 
                     "${ChatColor.GREEN}Maintenance mode has been enabled."
-                } else {
+                } else
+                {
                     "${ChatColor.RED}Maintenance mode has been disabled."
                 }
             )
@@ -52,8 +57,10 @@ class MaintenanceCommand(private val plugin: CocoaProxyPlugin) : BaseCommand() {
     @Subcommand("add")
     @Syntax("[player]")
     @Description("Add a player to maintenance.")
-    fun onAdd(sender: CommandSender, uuid: UUID) {
-        if (plugin.whitelistedPlayers.contains(uuid)) {
+    fun onAdd(sender: CommandSender, uuid: UUID)
+    {
+        if (plugin.whitelistedPlayers.contains(uuid))
+        {
             throw ConditionFailedException("That player is already whitelisted.")
         }
 
@@ -65,8 +72,10 @@ class MaintenanceCommand(private val plugin: CocoaProxyPlugin) : BaseCommand() {
     @Subcommand("remove")
     @Syntax("[player]")
     @Description("Remove a player from maintenance.")
-    fun onRemove(sender: CommandSender, uuid: UUID) {
-        if (!plugin.whitelistedPlayers.contains(uuid)) {
+    fun onRemove(sender: CommandSender, uuid: UUID)
+    {
+        if (!plugin.whitelistedPlayers.contains(uuid))
+        {
             throw ConditionFailedException("That player is not whitelisted.")
         }
 
@@ -77,8 +86,10 @@ class MaintenanceCommand(private val plugin: CocoaProxyPlugin) : BaseCommand() {
 
     @Subcommand("list|view")
     @Description("View all whitelisted players.")
-    fun onList(sender: CommandSender) {
-        if (plugin.whitelistedPlayers.isEmpty()) {
+    fun onList(sender: CommandSender)
+    {
+        if (plugin.whitelistedPlayers.isEmpty())
+        {
             throw ConditionFailedException("No one is whitelisted.")
         }
 

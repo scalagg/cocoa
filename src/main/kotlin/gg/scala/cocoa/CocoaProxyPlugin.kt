@@ -17,6 +17,7 @@ import gg.scala.cocoa.command.MaintenanceCommand
 import gg.scala.cocoa.handler.CocoaRedisHandler
 import gg.scala.cocoa.handler.LemonRedisHandler
 import gg.scala.cocoa.listener.PlayerListener
+import gg.scala.cocoa.util.FontInformation
 import gg.scala.cocoa.util.UUIDUtil
 import net.evilblock.cubed.Cubed
 import net.evilblock.cubed.util.BungeeConfigUtils
@@ -31,6 +32,7 @@ import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+
 
 /**
  * @author GrowlyX
@@ -66,6 +68,44 @@ class CocoaProxyPlugin : Plugin() {
         loadRedisHandler()
         loadCommands()
         loadListeners()
+    }
+
+    private val CENTER_PX = 132
+
+    private fun getCenteredMotd(message: String): String
+    {
+        var messagePxSize = 0
+        var previousCode = false
+        var isBold = false
+        for (c in message.toCharArray())
+        {
+            if (c == '§')
+            {
+                previousCode = true
+            } else if (previousCode)
+            {
+                previousCode = false
+                isBold = c == 'l' || c == 'L'
+            } else
+            {
+                val dFI = FontInformation.getDefaultFontInfo(c)
+                messagePxSize += if (isBold) dFI.getBoldLength() else dFI.getLength()
+                messagePxSize++
+            }
+        }
+
+        val halvedMessageSize = messagePxSize / 2
+        val toCompensate = CENTER_PX - halvedMessageSize
+        val spaceLength = FontInformation.SPACE.getLength() + 1
+        var compensated = 0
+        val sb = StringBuilder()
+
+        while (compensated < toCompensate)
+        {
+            sb.append(" ")
+            compensated += spaceLength
+        }
+        return sb.toString() + message
     }
 
     private fun loadListeners() {
@@ -155,12 +195,12 @@ class CocoaProxyPlugin : Plugin() {
             .getProvider(YamlConfiguration::class.java)
             .load(File(dataFolder, "config.yml"))
 
-        messages["maintenance-motd"] = ChatColor.translateAlternateColorCodes(
+        messages["maintenance-motd"] = getCenteredMotd(ChatColor.translateAlternateColorCodes(
             '&', config.getString("motd.maintenance")
-        )
-        messages["normal-motd"] = ChatColor.translateAlternateColorCodes(
+        ))
+        messages["normal-motd"] = getCenteredMotd(ChatColor.translateAlternateColorCodes(
             '&', config.getString("motd.normal")
-        )
+        ))
     }
 
     private fun loadRedisHandler() {

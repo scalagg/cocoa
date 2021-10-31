@@ -7,3 +7,8 @@ redis:
   port: 6379
   authentication: false
   password: ""
+vpn-blocker:
+  api-key: ""
+  alerts:
+    enabled: true
+    format: "&b[S] &3[%s] &4&s &ctried logging on with a vpn."

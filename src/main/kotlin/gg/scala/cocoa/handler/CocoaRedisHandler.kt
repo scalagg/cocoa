@@ -28,6 +28,8 @@ object CocoaRedisHandler : BananaHandler
     @Subscribe("permission-update")
     fun onPermissionUpdate(message: Message)
     {
+        message["uniqueId"] ?: return
+
         ProxyServer.getInstance().getPlayer(
             UUID.fromString(message["uniqueId"])
         )?.let {

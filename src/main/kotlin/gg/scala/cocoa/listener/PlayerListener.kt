@@ -143,6 +143,7 @@ class PlayerListener(
 
         if (
             reasonForKick.isNotBlank() ||
+            reasonForKick.isNotEmpty() ||
             !reasonForKick.contains("ban") ||
             !reasonForKick.contains("blacklist")
         )
