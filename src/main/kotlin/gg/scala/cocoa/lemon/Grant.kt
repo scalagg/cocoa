@@ -1,7 +1,7 @@
 package gg.scala.cocoa.lemon
 
 import gg.scala.cocoa.handler.DataStoreHandler
-import gg.scala.cocoa.player.rank.Rank
+import gg.scala.cocoa.lemon.rank.Rank
 import gg.scala.cocoa.util.other.Expirable
 import java.util.*
 

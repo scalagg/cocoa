@@ -6,10 +6,9 @@ import co.aikar.commands.ConditionFailedException
 import co.aikar.commands.annotation.*
 import gg.scala.cocoa.CocoaProxyPlugin
 import gg.scala.cocoa.handler.CocoaRedisHandler
-import gg.scala.cocoa.util.UUIDUtil
+import gg.scala.cocoa.lemon.rank.Rank
 import net.md_5.bungee.api.ChatColor
 import net.md_5.bungee.api.CommandSender
-import java.util.*
 
 /**
  * @author GrowlyX
@@ -28,15 +27,38 @@ class MaintenanceCommand(private val plugin: CocoaProxyPlugin) : BaseCommand()
         help.showHelp()
     }
 
+    @Subcommand("update")
+    @Description("Update maintenance mode's rank.")
+    @CommandCompletion("@ranks")
+    fun onUpdateRank(sender: CommandSender, rank: Rank)
+    {
+        val currentStatus = plugin.maintenance
+
+        if (!currentStatus)
+        {
+            throw ConditionFailedException("You must enable maintenance mode to perform this command.")
+        }
+
+        plugin.updateMaintenanceRank(rank)
+
+        sender.sendMessage("${ChatColor.GREEN}Maintenance mode rank has been set to: ${rank.color + rank.name}")
+    }
+
     @Subcommand("toggle")
     @Description("Toggle maintenance mode.")
-    fun onToggle(sender: CommandSender)
+    @CommandCompletion("@ranks")
+    fun onToggle(sender: CommandSender, rank: Rank?)
     {
-        plugin.updateMaintenanceMode().thenRun {
-            val currentStatus = plugin.maintenance
+        val currentStatus = plugin.maintenance
 
+        if (!currentStatus && rank == null)
+        {
+            throw ConditionFailedException("You must define a rank to toggle maintenance mode")
+        }
+
+        plugin.updateMaintenanceMode(rank).thenRun {
             sender.sendMessage(
-                if (currentStatus)
+                if (!currentStatus)
                 {
                     CocoaRedisHandler.buildMessage(
                         "maintenance-kick",
@@ -54,65 +76,21 @@ class MaintenanceCommand(private val plugin: CocoaProxyPlugin) : BaseCommand()
         }
     }
 
-    @Subcommand("add")
-    @Syntax("[player]")
-    @Description("Add a player to maintenance.")
-    fun onAdd(sender: CommandSender, uuid: UUID)
-    {
-        if (plugin.whitelistedPlayers.contains(uuid))
-        {
-            throw ConditionFailedException("That player is already whitelisted.")
-        }
 
-        plugin.addToMaintenanceList(uuid).thenRun {
-            sender.sendMessage("${ChatColor.YELLOW}You've whitelisted ${ChatColor.GREEN}${UUIDUtil.toName(uuid)}${ChatColor.YELLOW} globally.")
-        }
-    }
-
-    @Subcommand("remove")
-    @Syntax("[player]")
-    @Description("Remove a player from maintenance.")
-    fun onRemove(sender: CommandSender, uuid: UUID)
-    {
-        if (!plugin.whitelistedPlayers.contains(uuid))
-        {
-            throw ConditionFailedException("That player is not whitelisted.")
-        }
-
-        plugin.removeFromMaintenanceList(uuid).thenRun {
-            sender.sendMessage("${ChatColor.YELLOW}You've un-whitelisted ${ChatColor.GREEN}${UUIDUtil.toName(uuid)}${ChatColor.YELLOW} globally.")
-        }
-    }
-
-    @Subcommand("list|view")
-    @Description("View all whitelisted players.")
+    @Subcommand("info")
+    @Description("View maintenance information.")
     fun onList(sender: CommandSender)
     {
-        if (plugin.whitelistedPlayers.isEmpty())
+        if (plugin.maintenance)
         {
-            throw ConditionFailedException("No one is whitelisted.")
-        }
+            val maintenanceRank = plugin.maintenanceRank()
 
-        sender.sendMessage("${ChatColor.YELLOW}Fetching maintenance list...")
-
-        plugin.maintenanceLayer.fetchAllEntries().thenApply {
-            val nameList = mutableListOf<String>()
-
-            it.forEach { entry ->
-                UUIDUtil.toName(entry.value)?.let { it1 -> nameList.add(it1) }
-            }
-
-            return@thenApply nameList
-        }.thenAccept {
-            sender.sendMessages(
-                "${ChatColor.GREEN}${ChatColor.BOLD}Whitelisted Players:",
-                "${ChatColor.YELLOW}${it.size}${ChatColor.GRAY} whitelisted players found.",
-                ""
+            sender.sendMessage(
+                "${ChatColor.GREEN}The server is currently restricted to players with a rank weight above: ${maintenanceRank.color + maintenanceRank.name}"
             )
-
-            it.forEach { name ->
-                sender.sendMessage("${ChatColor.GRAY} - ${ChatColor.WHITE}$name")
-            }
+        } else
+        {
+            sender.sendMessage("${ChatColor.RED}The server is not in maintenance mode.")
         }
     }
 

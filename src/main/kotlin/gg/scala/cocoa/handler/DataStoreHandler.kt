@@ -4,10 +4,8 @@ import com.mongodb.client.model.Filters
 import com.solexgames.datastore.commons.connection.impl.mongo.UriMongoConnection
 import com.solexgames.datastore.commons.layer.impl.MongoStorageLayer
 import com.solexgames.datastore.commons.storage.impl.MongoStorageBuilder
-import gg.scala.cocoa.CocoaProxyConstants
-import gg.scala.cocoa.CocoaProxyPlugin
 import gg.scala.cocoa.lemon.Grant
-import gg.scala.cocoa.player.rank.Rank
+import gg.scala.cocoa.lemon.rank.Rank
 import net.evilblock.cubed.CubedConfig
 import net.evilblock.cubed.serializers.Serializers
 import org.bson.conversions.Bson
@@ -22,10 +20,13 @@ object DataStoreHandler {
 
     val ranks = mutableMapOf<UUID, Rank>()
 
-    var rankLayer: MongoStorageLayer<Rank>
-    var grantLayer: MongoStorageLayer<Grant>
+    lateinit var rankLayer: MongoStorageLayer<Rank>
+    lateinit var grantLayer: MongoStorageLayer<Grant>
 
-    init {
+    val rankOf = mutableMapOf<UUID, UUID>()
+
+    fun initialLoad()
+    {
         val mongoConnection = UriMongoConnection(
             CubedConfig.getMongoURI()
         )
@@ -46,9 +47,61 @@ object DataStoreHandler {
         }
     }
 
-    fun findRank(uuid: UUID): Rank? {
+    fun updateRank(uuid: UUID)
+    {
+        fetchGrantsFor(uuid).thenAccept {
+            if (it.isNullOrEmpty())
+            {
+                rankOf[uuid] = getDefaultRank().uuid
+            } else
+            {
+                val prominent = getProminentGrant(it)
+
+                if (prominent != null)
+                {
+                    rankOf[uuid] = prominent.getRank()?.uuid ?: getDefaultRank().uuid
+                } else
+                {
+                    rankOf[uuid] = getDefaultRank().uuid
+                }
+            }
+        }
+    }
+
+    fun loadRankOfNow(uuid: UUID): Rank
+    {
+        val grants = grantLayer.fetchAllEntriesWithFilterSync(
+            Filters.eq("target", uuid.toString())
+        ) ?: return getDefaultRank()
+
+        val prominent = getProminentGrant(grants.values)
+
+        return if (prominent == null)
+        {
+            getDefaultRank()
+        } else
+        {
+            prominent.getRank() ?: getDefaultRank()
+        }
+    }
+
+    fun findRank(uuid: UUID?): Rank? {
         return ranks.values.firstOrNull {
             it.uuid == uuid
+        }
+    }
+
+    @JvmStatic
+    fun getProminentGrant(grants: Collection<Grant>): Grant? {
+        return grants
+            .sortedByDescending { it.addedAt }
+            .sortedByDescending { it.getRank()?.weight ?: 0 }
+            .firstOrNull { !it.isRemoved && !it.hasExpired && it.getRank()?.visible ?: false && it.scopes.contains("global") }
+    }
+
+    fun findRank(name: String): Rank? {
+        return ranks.values.firstOrNull {
+            it.name.equals(name, true)
         }
     }
 
@@ -68,8 +121,11 @@ object DataStoreHandler {
 
     fun fetchGrantsFor(uuid: UUID?): CompletableFuture<List<Grant>> {
         return fetchGrants(
-            Filters.eq("target", uuid)
+            Filters.eq("target", uuid.toString())
         ) { true }
     }
 
+    fun getDefaultRank(): Rank {
+        return findRank("Default")!!
+    }
 }

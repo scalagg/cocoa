@@ -15,7 +15,9 @@ import gg.scala.banana.options.BananaOptions
 import gg.scala.cocoa.command.HubCommand
 import gg.scala.cocoa.command.MaintenanceCommand
 import gg.scala.cocoa.handler.CocoaRedisHandler
+import gg.scala.cocoa.handler.DataStoreHandler
 import gg.scala.cocoa.handler.LemonRedisHandler
+import gg.scala.cocoa.lemon.rank.Rank
 import gg.scala.cocoa.listener.PlayerListener
 import gg.scala.cocoa.util.FontInformation
 import gg.scala.cocoa.util.UUIDUtil
@@ -53,10 +55,10 @@ class CocoaProxyPlugin : Plugin() {
     lateinit var maintenanceLayer: RedisStorageLayer<UUID>
     lateinit var settingsLayer: RedisStorageLayer<Boolean>
 
-    val whitelistedPlayers = mutableListOf<UUID>()
     val proxySettings = mutableMapOf<String, Boolean>()
-
     val messages = mutableMapOf<String, String>()
+
+    var maintenanceRank: String? = null
 
     val maintenance: Boolean
         get() = proxySettings.getOrDefault("maintenance", false)
@@ -71,6 +73,32 @@ class CocoaProxyPlugin : Plugin() {
     }
 
     private val CENTER_PX = 132
+
+    fun shouldAllowOrStay(uuid: UUID): Boolean
+    {
+        val maintenanceRank = maintenanceRank()
+
+        val rankOfPlayer = DataStoreHandler.findRank(
+            DataStoreHandler.rankOf[uuid]
+        ) ?: DataStoreHandler.getDefaultRank()
+
+        return rankOfPlayer.weight >= maintenanceRank.weight
+    }
+
+    fun maintenanceRank(): Rank
+    {
+        maintenanceRank ?: return DataStoreHandler.getDefaultRank()
+
+        try
+        {
+            return DataStoreHandler.findRank(
+                UUID.fromString(maintenanceRank)
+            ) ?: return DataStoreHandler.getDefaultRank()
+        } catch (ignored: Exception)
+        {
+            return DataStoreHandler.getDefaultRank()
+        }
+    }
 
     private fun getCenteredMotd(message: String): String
     {
@@ -123,22 +151,15 @@ class CocoaProxyPlugin : Plugin() {
 
         commandManager.enableUnstableAPI("help")
 
-        commandManager.commandContexts.registerContext(UUID::class.java) { c ->
-            val firstArgument = c.popFirstArg()
+        commandManager.commandContexts.registerContext(Rank::class.java) {
+            val firstArgument = it.popFirstArg()
 
-            if (firstArgument.length == 32) {
-                return@registerContext UUIDUtil.formatUUID(firstArgument)
-                    ?: throw ConditionFailedException("${ChatColor.YELLOW}${firstArgument}${ChatColor.RED} is not a valid uuid.")
-            } else if (firstArgument.length <= 16) {
-                return@registerContext Cubed.instance.uuidCache.uuid(firstArgument)
-                    ?: throw ConditionFailedException("No player matching ${ChatColor.YELLOW}$firstArgument${ChatColor.RED} could be found.")
-            }
+            return@registerContext DataStoreHandler.findRank(firstArgument)
+                ?: throw ConditionFailedException("No rank matching ${ChatColor.YELLOW}$firstArgument${ChatColor.RED} could be found.")
+        }
 
-            return@registerContext try {
-                UUID.fromString(firstArgument)
-            } catch (ignored: Exception) {
-                throw ConditionFailedException("${ChatColor.YELLOW}${firstArgument}${ChatColor.RED} is not a valid uuid.")
-            }
+        commandManager.commandCompletions.registerCompletion("ranks") {
+            return@registerCompletion DataStoreHandler.ranks.map { it.value.name }
         }
 
         commandManager.registerCommand(MaintenanceCommand(this))
@@ -181,9 +202,23 @@ class CocoaProxyPlugin : Plugin() {
         return maintenanceLayer.deleteEntry(uuid.toString())
     }
 
-    fun updateMaintenanceMode(): CompletableFuture<Void> {
+    fun updateMaintenanceRank(rank: Rank)
+    {
+        settingsLayer.runCommand {
+            it.hset("cocoa:metadata", "maintenance-rank", rank.uuid.toString())
+        }
+    }
+
+    fun updateMaintenanceMode(rank: Rank?): CompletableFuture<Void> {
         val newValue = !maintenance
         proxySettings["maintenance"] = newValue
+
+        if (rank != null)
+        {
+            settingsLayer.runCommand {
+                it.hset("cocoa:metadata", "maintenance-rank", rank.uuid.toString())
+            }
+        }
 
         return settingsLayer.saveEntry("maintenance", newValue)
     }
@@ -270,12 +305,15 @@ class CocoaProxyPlugin : Plugin() {
 
         Cubed.instance.loadStore(proxyBanana)
 
-        executor.scheduleAtFixedRate({
-            maintenanceLayer.fetchAllEntries().thenAccept {
-                whitelistedPlayers.clear()
-                whitelistedPlayers.addAll(it.values)
-            }
+        DataStoreHandler.initialLoad()
 
+        Executors.newScheduledThreadPool(1).scheduleAtFixedRate({
+            proxy.players.forEach {
+                DataStoreHandler.updateRank(it.uniqueId)
+            }
+        }, 0L, 2L, TimeUnit.SECONDS)
+
+        executor.scheduleAtFixedRate({
             settingsLayer.fetchAllEntries().thenAccept {
                 proxySettings.clear()
 
@@ -287,6 +325,8 @@ class CocoaProxyPlugin : Plugin() {
             try {
                 settingsLayer.runCommand {
                     it.hset("cocoa:players", "global", RedisBungee.getApi().playerCount.toString())
+
+                    maintenanceRank = it.hget("cocoa:metadata", "maintenance-rank")
                 }
             } catch (e: Exception) {
                 logger.warning("Failed to update online players! Is RedisBungee not enabled?")

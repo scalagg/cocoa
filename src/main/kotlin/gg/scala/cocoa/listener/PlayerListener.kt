@@ -3,6 +3,8 @@ package gg.scala.cocoa.listener
 import gg.scala.cocoa.CocoaProxyConstants
 import gg.scala.cocoa.CocoaProxyPlugin
 import gg.scala.cocoa.handler.CocoaRedisHandler
+import gg.scala.cocoa.handler.DataStoreHandler
+import gg.scala.cocoa.util.color
 import gg.scala.cocoa.vpn.CocoaVpnHandler
 import net.md_5.bungee.api.AbstractReconnectHandler
 import net.md_5.bungee.api.ChatColor
@@ -41,11 +43,19 @@ class PlayerListener(
     {
         val uniqueId = event.connection.uniqueId
 
-        if (plugin.maintenance && !plugin.whitelistedPlayers.contains(uniqueId))
+        val loadedRank = DataStoreHandler.loadRankOfNow(event.connection.uniqueId)
+        DataStoreHandler.rankOf[uniqueId] = loadedRank.uuid
+
+        if (plugin.maintenance)
         {
-            event.cancelReason = CocoaProxyConstants.MAINTENANCE_MESSAGE
-            event.isCancelled = true
-            return
+            if (!plugin.shouldAllowOrStay(uniqueId))
+            {
+                event.cancelReason = CocoaProxyConstants.MAINTENANCE_MESSAGE
+                event.isCancelled = true
+
+                DataStoreHandler.rankOf.remove(uniqueId)
+                return
+            }
         }
 
         if (plugin.config.getBoolean("vpn-blocker.enabled"))
@@ -65,11 +75,13 @@ class PlayerListener(
                     {
                         val alert = String.format(
                             plugin.config.getString("vpn-blocker.alerts.format"),
-                            event.connection.name
+                            loadedRank.color + event.connection.name
                         )
 
                         CocoaRedisHandler.sendStaffNotification(null, alert)
                     }
+
+                    DataStoreHandler.rankOf.remove(uniqueId)
                 }
             }
         }
@@ -87,8 +99,10 @@ class PlayerListener(
                 {
                     CocoaRedisHandler.sendStaffNotification(
                         event.player,
-                        "${ChatColor.AQUA}${event.player.displayName}${ChatColor.DARK_AQUA} disconnected from ${ChatColor.AQUA}${event.target.name}${ChatColor.DARK_AQUA}."
+                        "${ChatColor.AQUA}${color(event.player.uniqueId) + event.player.name}${ChatColor.DARK_AQUA} disconnected from ${ChatColor.AQUA}${event.target.name}${ChatColor.DARK_AQUA}."
                     )
+
+                    DataStoreHandler.rankOf.remove(event.player.uniqueId)
                 }
             }, 2L, TimeUnit.MILLISECONDS)
         }
@@ -101,7 +115,7 @@ class PlayerListener(
         {
             CocoaRedisHandler.sendStaffNotification(
                 event.player,
-                "${ChatColor.AQUA}${event.player.displayName}${ChatColor.DARK_AQUA} joined ${ChatColor.AQUA}${event.player.server.info.name}${ChatColor.DARK_AQUA} from ${ChatColor.AQUA}${event.from.name}${ChatColor.DARK_AQUA}."
+                "${ChatColor.AQUA}${color(event.player.uniqueId) + event.player.name}${ChatColor.DARK_AQUA} joined ${ChatColor.AQUA}${event.player.server.info.name}${ChatColor.DARK_AQUA} from ${ChatColor.AQUA}${event.from.name}${ChatColor.DARK_AQUA}."
             )
         }
     }
@@ -111,22 +125,26 @@ class PlayerListener(
     {
         if (event.reason == ServerConnectEvent.Reason.JOIN_PROXY)
         {
-            event.target = (if (event.player.hasPermission("cocoa.staff"))
-            {
-                plugin.fetchBestRestrictedLobby()
-            } else plugin.fetchBestLobby()) ?: event.target
+            val rank = DataStoreHandler.findRank(
+                DataStoreHandler.rankOf[event.player.uniqueId]
+            ) ?: DataStoreHandler.getDefaultRank()
 
-            ProxyServer.getInstance().scheduler.schedule(CocoaProxyPlugin.instance, {
-                val proxiedPlayer = ProxyServer.getInstance().getPlayer(event.player.uniqueId)
+            val compounded = rank.getCompoundedPermissions()
 
-                if (proxiedPlayer != null && proxiedPlayer.hasPermission("cocoa.staff"))
-                {
-                    CocoaRedisHandler.sendStaffNotification(
-                        event.player,
-                        "${ChatColor.AQUA}${event.player.displayName}${ChatColor.DARK_AQUA} connected to ${ChatColor.AQUA}${event.target.name}${ChatColor.DARK_AQUA}."
-                    )
+            compounded.filter { it.startsWith("%") }
+                .forEach {
+                    event.player.setPermission(it.removePrefix("%"), true)
                 }
-            }, 1L, TimeUnit.SECONDS)
+
+            event.target = (if (compounded.contains("%cocoa.staff")) plugin.fetchBestRestrictedLobby() else plugin.fetchBestLobby()) ?: event.target
+
+            if (compounded.contains("%cocoa.staff"))
+            {
+                CocoaRedisHandler.sendStaffNotification(
+                    event.player,
+                    "${ChatColor.AQUA}${color(event.player.uniqueId) + event.player.name}${ChatColor.DARK_AQUA} connected to ${ChatColor.AQUA}${event.target.name}${ChatColor.DARK_AQUA}."
+                )
+            }
         } else
         {
             if (!event.target.canAccess(event.player))
@@ -166,7 +184,7 @@ class PlayerListener(
 
         val reasonForKick = event.kickReason
         event.isCancelled = true
-        event.cancelServer = plugin.fetchBestLobby()
+        event.cancelServer = (if (event.player.hasPermission("cocoa.staff")) plugin.fetchBestRestrictedLobby() else plugin.fetchBestLobby())
 
         if (
             reasonForKick.isNotBlank() ||
