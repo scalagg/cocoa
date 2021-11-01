@@ -168,13 +168,12 @@ class CocoaProxyPlugin : Plugin() {
 
     fun fetchBestLobby(): ServerInfo? {
         return proxy.servers.values
-            .sortedByDescending { it.players.size }
+            .sortedBy { it.players.size }
             .firstOrNull { isLobbyServer(it) }
     }
 
     fun fetchBestRestrictedLobby(): ServerInfo? {
         return proxy.servers.values
-            .sortedByDescending { it.players.size }
             .firstOrNull { isRestrictedLobbyServer(it) } ?: fetchBestLobby()
     }
 
