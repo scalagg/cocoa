@@ -46,22 +46,20 @@ object CocoaRedisHandler : BananaHandler
         notification: String,
     )
     {
-        ForkJoinPool.commonPool().execute {
-            buildMessage(
-                "staff-message",
-                HashMap<String, String>().also {
-                    it["sender-fancy"] = sender?.displayName ?: ""
-                    it["message"] = notification
-                    it["permission"] = "lemon.staff"
-                    it["message-type"] = "NOTIFICATION"
+        buildMessage(
+            "staff-message",
+            HashMap<String, String>().also {
+                it["sender-fancy"] = sender?.displayName ?: ""
+                it["message"] = notification
+                it["permission"] = "lemon.staff"
+                it["message-type"] = "NOTIFICATION"
 
-                    it["server"] = "proxy"
-                    it["with-server"] = "false"
-                }
-            ).dispatch(
-                CocoaProxyPlugin.instance.spigotBanana
-            )
-        }
+                it["server"] = "proxy"
+                it["with-server"] = "false"
+            }
+        ).dispatch(
+            CocoaProxyPlugin.instance.spigotBanana
+        )
     }
 
     fun buildMessage(packet: String, message: Map<String, String>): Message

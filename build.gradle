@@ -24,7 +24,7 @@ dependencies {
     implementation 'redis.clients:jedis:3.7.0'
 
     implementation fileTree("internal")
-    compileOnly fileTree("lib")
+    compileOnly fileTree(dir: "lib")
 
     implementation 'org.apache.commons:commons-lang3:3.12.0'
 
