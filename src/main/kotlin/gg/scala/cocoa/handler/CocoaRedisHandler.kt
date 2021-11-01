@@ -21,7 +21,7 @@ object CocoaRedisHandler : BananaHandler
     fun onMaintenanceKick(message: Message)
     {
         ProxyServer.getInstance().players
-            .filter { CocoaProxyPlugin.instance.shouldAllowOrStay(it.uniqueId) }
+            .filter { !CocoaProxyPlugin.instance.shouldAllowOrStay(it.uniqueId) }
             .forEach { it.disconnect(CocoaProxyConstants.MAINTENANCE_MESSAGE) }
     }
 
