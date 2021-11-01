@@ -129,16 +129,15 @@ class PlayerListener(
                 DataStoreHandler.rankOf[event.player.uniqueId]
             ) ?: DataStoreHandler.getDefaultRank()
 
-            val compounded = rank.getCompoundedPermissions()
-
-            compounded.filter { it.startsWith("%") }
+            rank.getCompoundedPermissions()
+                .filter { it.startsWith("%") }
                 .forEach {
                     event.player.setPermission(it.removePrefix("%"), true)
                 }
 
-            event.target = (if (compounded.contains("%cocoa.staff")) plugin.fetchBestRestrictedLobby() else plugin.fetchBestLobby()) ?: event.target
+            event.target = (if (event.player.hasPermission("cocoa.staff")) plugin.fetchBestRestrictedLobby() else plugin.fetchBestLobby()) ?: event.target
 
-            if (compounded.contains("%cocoa.staff"))
+            if (event.player.hasPermission("cocoa.staff"))
             {
                 CocoaRedisHandler.sendStaffNotification(
                     event.player,
