@@ -15,6 +15,7 @@ import net.md_5.bungee.api.event.*
 import net.md_5.bungee.api.plugin.Listener
 import net.md_5.bungee.event.EventHandler
 import net.md_5.bungee.event.EventPriority
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 /**
@@ -139,10 +140,12 @@ class PlayerListener(
 
             if (event.player.hasPermission("cocoa.staff"))
             {
-                CocoaRedisHandler.sendStaffNotification(
-                    event.player,
-                    "${ChatColor.AQUA}${color(event.player.uniqueId) + event.player.name}${ChatColor.DARK_AQUA} connected to ${ChatColor.AQUA}${event.target.name}${ChatColor.DARK_AQUA}."
-                )
+                ProxyServer.getInstance().scheduler.schedule(plugin, {
+                    CocoaRedisHandler.sendStaffNotification(
+                        event.player,
+                        "${ChatColor.AQUA}${color(event.player.uniqueId) + event.player.name}${ChatColor.DARK_AQUA} connected to ${ChatColor.AQUA}${event.target.name}${ChatColor.DARK_AQUA}."
+                    )
+                }, 50L, 0L, TimeUnit.MILLISECONDS)
             }
         } else
         {
