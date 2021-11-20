@@ -20,7 +20,6 @@ import gg.scala.cocoa.handler.LemonRedisHandler
 import gg.scala.cocoa.lemon.rank.Rank
 import gg.scala.cocoa.listener.PlayerListener
 import gg.scala.cocoa.util.FontInformation
-import gg.scala.cocoa.util.UUIDUtil
 import net.evilblock.cubed.Cubed
 import net.evilblock.cubed.util.BungeeConfigUtils
 import net.md_5.bungee.api.ChatColor
@@ -72,7 +71,7 @@ class CocoaProxyPlugin : Plugin() {
         loadListeners()
     }
 
-    private val CENTER_PX = 132
+    private val centerPixels = 132.2
 
     fun shouldAllowOrStay(uuid: UUID): Boolean
     {
@@ -100,11 +99,13 @@ class CocoaProxyPlugin : Plugin() {
         }
     }
 
-    private fun getCenteredMotd(message: String): String
+    private fun center(message: String): String
     {
         var messagePxSize = 0
+
         var previousCode = false
         var isBold = false
+
         for (c in message.toCharArray())
         {
             if (c == '§')
@@ -123,17 +124,19 @@ class CocoaProxyPlugin : Plugin() {
         }
 
         val halvedMessageSize = messagePxSize / 2
-        val toCompensate = CENTER_PX - halvedMessageSize
+        val toCompensate = centerPixels - halvedMessageSize
         val spaceLength = FontInformation.SPACE.getLength() + 1
         var compensated = 0
-        val sb = StringBuilder()
+
+        var sb = ""
 
         while (compensated < toCompensate)
         {
-            sb.append(" ")
+            sb += " "
             compensated += spaceLength
         }
-        return sb.toString() + message
+
+        return "$sb$message"
     }
 
     private fun loadListeners() {
@@ -178,7 +181,7 @@ class CocoaProxyPlugin : Plugin() {
     }
 
     fun isLobbyServer(info: ServerInfo): Boolean {
-        return (info.name.contains("hub") || info.name.contains("lobby")) && !info.name.contains("restricted")
+        return (info.name.contains("hub") || info.name.contains("lobby"))
     }
 
     fun isRestrictedLobbyServer(info: ServerInfo): Boolean {
@@ -229,12 +232,29 @@ class CocoaProxyPlugin : Plugin() {
             .getProvider(YamlConfiguration::class.java)
             .load(File(dataFolder, "config.yml"))
 
-        messages["maintenance-motd"] = getCenteredMotd(ChatColor.translateAlternateColorCodes(
+        var split = ChatColor.translateAlternateColorCodes(
             '&', config.getString("motd.maintenance")
-        ))
-        messages["normal-motd"] = getCenteredMotd(ChatColor.translateAlternateColorCodes(
+        ).split("\n")
+        var newlmao = mutableListOf<String>()
+
+        for (line in split)
+        {
+            newlmao.add(center(line))
+        }
+
+        messages["maintenance-motd"] = newlmao.joinToString(separator = "\n")
+
+        split = ChatColor.translateAlternateColorCodes(
             '&', config.getString("motd.normal")
-        ))
+        ).split("\n")
+        newlmao.clear()
+
+        for (line in split)
+        {
+            newlmao.add(center(line))
+        }
+
+        messages["normal-motd"] = newlmao.joinToString(separator = "\n")
     }
 
     private fun loadRedisHandler() {

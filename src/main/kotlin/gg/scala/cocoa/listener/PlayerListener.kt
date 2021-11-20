@@ -58,34 +58,6 @@ class PlayerListener(
                 return
             }
         }
-
-        if (plugin.config.getBoolean("vpn-blocker.enabled"))
-        {
-            val requestData = CocoaVpnHandler.fetch(
-                event.connection.address.address.hostAddress
-            )
-
-            if (requestData != null)
-            {
-                if (!requestData.shouldAllow)
-                {
-                    event.cancelReason = CocoaProxyConstants.VPN_MESSAGE
-                    event.isCancelled = true
-
-                    if (plugin.config.getBoolean("vpn-blocker.alerts.enabled"))
-                    {
-                        val alert = String.format(
-                            plugin.config.getString("vpn-blocker.alerts.format"),
-                            loadedRank.color + event.connection.name
-                        )
-
-                        CocoaRedisHandler.sendStaffNotification(null, alert)
-                    }
-
-                    DataStoreHandler.rankOf.remove(uniqueId)
-                }
-            }
-        }
     }
 
     @EventHandler
@@ -114,10 +86,12 @@ class PlayerListener(
     {
         if (event.from != null && event.player.hasPermission("cocoa.staff"))
         {
-            CocoaRedisHandler.sendStaffNotification(
-                event.player,
-                "${ChatColor.AQUA}${color(event.player.uniqueId) + event.player.name}${ChatColor.DARK_AQUA} joined ${ChatColor.AQUA}${event.player.server.info.name}${ChatColor.DARK_AQUA} from ${ChatColor.AQUA}${event.from.name}${ChatColor.DARK_AQUA}."
-            )
+            ProxyServer.getInstance().scheduler.schedule(plugin, {
+                CocoaRedisHandler.sendStaffNotification(
+                    event.player,
+                    "${ChatColor.AQUA}${color(event.player.uniqueId) + event.player.name}${ChatColor.DARK_AQUA} joined ${ChatColor.AQUA}${event.player.server.info.name}${ChatColor.DARK_AQUA} from ${ChatColor.AQUA}${event.from.name}${ChatColor.DARK_AQUA}."
+                )
+            }, 100L, 0L, TimeUnit.MILLISECONDS)
         }
     }
 
@@ -145,13 +119,13 @@ class PlayerListener(
                         event.player,
                         "${ChatColor.AQUA}${color(event.player.uniqueId) + event.player.name}${ChatColor.DARK_AQUA} connected to ${ChatColor.AQUA}${event.target.name}${ChatColor.DARK_AQUA}."
                     )
-                }, 50L, 0L, TimeUnit.MILLISECONDS)
+                }, 100L, 0L, TimeUnit.MILLISECONDS)
             }
         } else
         {
             if (!event.target.canAccess(event.player))
             {
-                event.player.sendMessage("${ChatColor.RED}Your connection to ${ChatColor.BOLD}${event.target.name}${ChatColor.RED} has been blocked due to you not having permission to access it.")
+                event.player.sendMessage("${ChatColor.RED}Your connection to ${ChatColor.BOLD}${event.target.name}${ChatColor.RED} has been prevented due to your lack of permission.")
                 event.isCancelled = true
             }
         }
