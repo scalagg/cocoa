@@ -169,14 +169,8 @@ class PlayerListener(
             !reasonForKick.contains("blacklist")
         )
         {
-            event.player.sendMessage(
-                *TextComponent.fromLegacyText(
-                    """
-                ${ChatColor.RED}The server you were on is now down for:
-                $reasonForKick
-                """.trimIndent()
-                )
-            )
+            event.player.sendMessage(*TextComponent.fromLegacyText("${ChatColor.RED}The server you were on is now down for:"))
+            event.player.sendMessage(*TextComponent.fromLegacyText(reasonForKick, ChatColor.WHITE))
         }
     }
 }
